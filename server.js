@@ -1,14 +1,11 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-
-// ---------- MongoDB Connection (SERVERLESS SAFE) ----------
 let cached = global.mongoose;
 
 if (!cached) {
@@ -30,12 +27,11 @@ async function connectDB() {
   return cached.conn;
 }
 
-// ---------- Schema & Model ----------
 const PostSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     description: { type: String, required: true },
-    photo: { type: String, required: true }, // Google Drive link
+    photo: { type: String, required: true }, 
     date: { type: Date, default: Date.now }
   },
   { timestamps: true }
@@ -44,9 +40,6 @@ const PostSchema = new mongoose.Schema(
 const Post =
   mongoose.models.Post || mongoose.model("Post", PostSchema);
 
-// ---------- Routes ----------
-
-// Health check
 app.get("/", (req, res) => {
   res.send("API is running");
 });
@@ -61,8 +54,6 @@ app.get("/posts", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-// Create post
 app.post("/posts", async (req, res) => {
   try {
     await connectDB();
@@ -87,5 +78,16 @@ app.post("/posts", async (req, res) => {
   }
 });
 
-// ---------- Export for Vercel ----------
+app.post("/admin/login", (req, res) => {
+  const { adminId, adminPass } = req.body;
+
+  if (
+    adminId === process.env.ADMIN_ID &&
+    adminPass === process.env.ADMIN_PASS
+  ) {
+    return res.json({ success: true });
+  }
+
+  res.status(401).json({ success: false });
+});
 export default app;
