@@ -2,8 +2,6 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 const app = express();
-
-// Middleware
 app.use(cors());
 app.use(express.json());
 let cached = global.mongoose;
@@ -89,5 +87,15 @@ app.post("/admin/login", (req, res) => {
   }
 
   res.status(401).json({ success: false });
+});
+
+app.delete("/posts/:id", async (req, res) => {
+  try {
+    await connectDB();
+    await Post.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 export default app;
